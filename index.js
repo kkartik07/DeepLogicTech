@@ -4,26 +4,28 @@ const url = `https://newsapi.org/v2/top-headlines?country=${country}&apiKey=${ap
 
 const newsContainer = document.getElementById('news-container');
 
-fetch(url)
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
+const xhr = new XMLHttpRequest();
+xhr.open('GET', url, true);
+xhr.onreadystatechange = function () {
+    if (xhr.readyState === 4) {
+        if (xhr.status === 200) {
+            const data = JSON.parse(xhr.responseText);
+            const articles = data.articles.slice(0, 6);
+            articles.forEach(article => {
+                const { title, description, url } = article;
+                const articleElement = document.createElement('div');
+                articleElement.classList.add('card');
+                articleElement.innerHTML = `
+                    <div class="card-body">
+                        <h2 class="card-title"><a href="${url}" target="_blank">${title}</a></h2>
+                        <p class="card-text">${description}</p>
+                    </div>
+                `;
+                newsContainer.appendChild(articleElement);
+            });
+        } else {
+            console.error('Request failed. Status:', xhr.status);
         }
-        return response.json();
-    })
-    .then(data => {
-        const articles = data.articles.slice(0, 6);
-        articles.forEach(article => {
-            const { title, description, url } = article;
-            const articleElement = document.createElement('div');
-            articleElement.classList.add('card');
-            articleElement.innerHTML = `
-                <h2><a href="${url}" target="_blank">${title}</a></h2>
-                <p>${description}</p>
-            `;
-            newsContainer.appendChild(articleElement);
-        });
-    })
-    .catch(error => {
-        console.error('There was a problem with the fetch operation:', error);
-    });
+    }
+};
+xhr.send();
